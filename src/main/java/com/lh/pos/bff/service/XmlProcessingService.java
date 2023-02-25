@@ -18,6 +18,7 @@ public class XmlProcessingService {
         {
             Resource resource = new ClassPathResource("sample.xml");
             MESSAGE message = unmarshall(resource.getFile());
+            System.out.println(message.toString());
 
         }
         catch (Exception  e)
