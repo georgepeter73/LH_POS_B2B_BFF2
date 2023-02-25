@@ -17,16 +17,6 @@ public class XmlProcessingService {
         try
         {
             Resource resource = new ClassPathResource("sample.xml");
-            FileInputStream fileInputStream = new FileInputStream(resource.getFile());
-            BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream));
-            StringBuilder out = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                out.append(line);
-            }
-            MESSAGE msg = new MESSAGE();
-            String fileContent = out.toString();
-            reader.close();
             MESSAGE message = unmarshall(resource.getFile());
 
         }
