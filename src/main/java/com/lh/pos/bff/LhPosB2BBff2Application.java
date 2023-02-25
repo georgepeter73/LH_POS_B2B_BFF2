@@ -7,7 +7,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class LhPosB2BBff2Application {
 
     public static void main(String[] args) {
+
         SpringApplication.run(LhPosB2BBff2Application.class, args);
+
+
     }
 
 }
