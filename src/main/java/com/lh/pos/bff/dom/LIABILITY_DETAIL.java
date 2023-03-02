@@ -1,5 +1,8 @@
 package com.lh.pos.bff.dom;
 
+import lombok.Data;
+
+@Data
 public class LIABILITY_DETAIL {
 	public double LiabilityAccountIdentifier;
 	public boolean LiabilityExclusionIndicator;
