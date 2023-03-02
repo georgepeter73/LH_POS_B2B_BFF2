@@ -1,0 +1,5 @@
+package com.lh.pos.dom;
+
+public class GOVERNMENT_MONITORING {
+	public GOVERNMENT_MONITORING_DETAIL GOVERNMENT_MONITORING_DETAIL;
+}

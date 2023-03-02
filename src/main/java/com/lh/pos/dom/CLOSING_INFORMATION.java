@@ -1,0 +1,5 @@
+package com.lh.pos.dom;
+
+public class CLOSING_INFORMATION {
+	public CLOSING_INFORMATION_DETAIL CLOSING_INFORMATION_DETAIL;
+}
