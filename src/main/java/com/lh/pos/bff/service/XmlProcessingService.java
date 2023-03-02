@@ -127,6 +127,8 @@ public class XmlProcessingService {
         NodeList nodeList = loanElement.getChildNodes();
         AMORTIZATION amortization = null;
         CLOSING_INFORMATION closing_information = new CLOSING_INFORMATION();
+        HOUSING_EXPENSES housing_expenses = new HOUSING_EXPENSES();
+        LOAN_DETAIL loan_detail = new LOAN_DETAIL();
         for(int i=0;i<nodeList.getLength();i++){
             Node node = nodeList.item(i);
             if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("AMORTIZATION"))
@@ -141,10 +143,67 @@ public class XmlProcessingService {
                 closing_information = getClosingInformation(eElement);
 
             }
+            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("HOUSING_EXPENSES"))
+            {
+                Element eElement = (Element) node;
+                housing_expenses = getHousingExpenses(eElement);
+
+            }
+            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("LOAN_DETAIL"))
+            {
+                Element eElement = (Element) node;
+                loan_detail = getLoanDetail(eElement);
+
+            }
+
         }
+        loan.setHOUSING_EXPENSES(housing_expenses);
         loan.setCLOSING_INFORMATION(closing_information);
         loan.setAMORTIZATION(amortization);
+        loan.setLOAN_DETAIL(loan_detail);
         return loan;
+    }
+
+    private LOAN_DETAIL getLoanDetail(Element loanDeatailElement){
+        LOAN_DETAIL loan_detail = new LOAN_DETAIL();
+        loan_detail.setConstructionLoanIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("BalloonIndicator").item(0).getTextContent()));
+        loan_detail.setBuydownTemporarySubsidyFundingIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("BuydownTemporarySubsidyFundingIndicator").item(0).getTextContent()));
+        loan_detail.setConstructionLoanIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("ConstructionLoanIndicator").item(0).getTextContent()));
+        loan_detail.setConversionOfContractForDeedIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("ConversionOfContractForDeedIndicator").item(0).getTextContent()));
+        loan_detail.setEnergyRelatedImprovementsIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("EnergyRelatedImprovementsIndicator").item(0).getTextContent()));
+        loan_detail.setInterestOnlyIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("InterestOnlyIndicator").item(0).getTextContent()));
+        loan_detail.setNegativeAmortizationIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("NegativeAmortizationIndicator").item(0).getTextContent()));
+        loan_detail.setPrepaymentPenaltyIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("PrepaymentPenaltyIndicator").item(0).getTextContent()));
+        loan_detail.setRenovationLoanIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("RenovationLoanIndicator").item(0).getTextContent()));
+        loan_detail.setTotalMortgagedPropertiesCount(returnZeroIfBlank(loanDeatailElement.getElementsByTagName("TotalMortgagedPropertiesCount").item(0).getTextContent()));
+        return loan_detail;
+    }
+    private HOUSING_EXPENSES getHousingExpenses(Element housingExpensesElement){
+        HOUSING_EXPENSES housing_expenses = new HOUSING_EXPENSES();
+        HOUSING_EXPENSE housing_expense = new HOUSING_EXPENSE();
+        List<HOUSING_EXPENSE> housingExpenseList = new ArrayList<>();
+        NodeList nodeList = housingExpensesElement.getChildNodes();
+        for(int i=0;i<nodeList.getLength();i++){
+            Node node = nodeList.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("HOUSING_EXPENSE"))
+            {
+                Element eElement = (Element) node;
+                housing_expense = getHousingExpense(eElement);
+                housingExpenseList.add(housing_expense);
+
+            }
+        }
+        housing_expenses.setHOUSING_EXPENSE(housingExpenseList);
+        return housing_expenses;
+
+    }
+
+    private HOUSING_EXPENSE getHousingExpense(Element housingExpenseElement){
+        HOUSING_EXPENSE housing_expense = new HOUSING_EXPENSE();
+        housing_expense.setHousingExpensePaymentAmount(returnDoubleZeroIfBlank(housingExpenseElement.getElementsByTagName("HousingExpensePaymentAmount").item(0).getTextContent()));
+        housing_expense.setHousingExpenseType(housingExpenseElement.getElementsByTagName("HousingExpenseType").item(0).getTextContent());
+        housing_expense.setHousingExpenseTimingType(housingExpenseElement.getElementsByTagName("HousingExpenseTimingType").item(0).getTextContent());
+        return housing_expense;
     }
     private CLOSING_INFORMATION getClosingInformation(Element closingInformationElement){
         CLOSING_INFORMATION closing_information = new CLOSING_INFORMATION();
