@@ -1,5 +1,8 @@
 package com.lh.pos.bff.dom;
 
+import lombok.Data;
+
+@Data
 public class PARTY {
 	public INDIVIDUAL INDIVIDUAL;
 	public ROLES ROLES;

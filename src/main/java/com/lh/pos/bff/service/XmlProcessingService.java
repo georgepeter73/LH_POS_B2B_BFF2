@@ -1,5 +1,6 @@
 package com.lh.pos.bff.service;
 
+import ch.qos.logback.core.model.INamedModel;
 import com.lh.pos.bff.collection.LoanApplication;
 import com.lh.pos.bff.dom.*;
 import com.lh.pos.bff.repository.LoanApplicationRepository;
@@ -61,11 +62,13 @@ public class XmlProcessingService {
         SUBJECT_PROPERTY subjectProperty = null;
         PROPERTY_DETAIL property_detail = null;
         Node dealNode = getDeal(document);
+        PARTIES parties = null;
         LOANS loans = null;
         if(dealNode!=null) {
             subjectProperty = getSubjectProperty(dealNode);
             liabilities = getLiabilities(dealNode);
             loans = getLoans(dealNode);
+            parties = getParties(dealNode);
 
         }
         collaterals.setCOLLATERAL(collateral);
@@ -77,6 +80,7 @@ public class XmlProcessingService {
         deal.setLIABILITIES(liabilities);
         deal.setCOLLATERALS(collaterals);
         deal.setLOANS(loans);
+        deal.setPARTIES(parties);
 
         return message;
     }
@@ -116,6 +120,92 @@ public class XmlProcessingService {
            loans.setLOAN(loan);
        }
        return loans;
+    }
+    private PARTIES getParties(Node dealNode) throws XPathExpressionException {
+        PARTIES parties = new PARTIES();
+        List<PARTY> partyList = new ArrayList<>();
+        PARTY party = null;
+        NodeList nodeList = getNodeList(dealNode,"./DEAL/PARTIES");
+        if(nodeList.getLength()>0){
+            NodeList loanNodeList = nodeList.item(0).getChildNodes();
+            for(int i=0;i<loanNodeList.getLength();i++){
+                Node node = loanNodeList.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("PARTY"))
+                {
+                    Element eElement = (Element) node;
+                    party = getParty(eElement);
+                    partyList.add(party);
+
+                }
+            }
+            parties.setPARTY(partyList);
+        }
+        return parties;
+    }
+    private PARTY getParty(Element partyElement){
+        PARTY party = new PARTY();
+        INDIVIDUAL individual = new INDIVIDUAL();
+        NodeList nodeList = partyElement.getChildNodes();
+        for(int i=0;i<nodeList.getLength();i++){
+            Node node = nodeList.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("INDIVIDUAL"))
+            {
+                Element eElement = (Element) node;
+                individual = getIndividual(eElement);
+
+            }
+            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("ROLES"))
+            {
+                Element eElement = (Element) node;
+
+            }
+            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("TAXPAYER_IDENTIFIERS"))
+            {
+                Element eElement = (Element) node;
+
+            }
+            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("TAXPAYER_IDENTIFIERS"))
+            {
+                Element eElement = (Element) node;
+
+            }
+
+        }
+        party.setINDIVIDUAL(individual);
+        return party;
+
+    }
+    private INDIVIDUAL getIndividual(Element individualElement){
+        INDIVIDUAL individual = new INDIVIDUAL();
+        NodeList nodeList = individualElement.getChildNodes();
+        NAME name = new NAME();
+       for(int i=0;i<nodeList.getLength();i++){
+            Node node = nodeList.item(i);
+
+            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("CONTACT_POINTS"))
+            {
+                Element eElement = (Element) node;
+            }
+            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("NAME"))
+            {
+                Element eElement = (Element) node;
+                NodeList nodeList1 = eElement.getElementsByTagName("FirstName");
+                NodeList nodeList2 =  eElement.getElementsByTagName("LastName");
+                if(nodeList1.getLength()>0){
+                    name.setFirstName(nodeList1.item(0).getTextContent());
+                }
+                if(nodeList1.getLength()>0){
+                    name.setLastName(nodeList2.item(0).getTextContent());
+                }
+
+
+            }
+
+
+        }
+        individual.setNAME(name);
+       return individual;
+
     }
     private LOAN getLoan(Node loanElement){
         LOAN loan = new LOAN();
