@@ -10,5 +10,5 @@ public class TERMS_OF_LOAN {
 	public String LoanPurposeType;
 	public String MortgageType;
 	public double NoteAmount;
-	public Date NoteRatePercent;
+	public double NoteRatePercent;
 }

@@ -58,24 +58,18 @@ public class XmlProcessingService {
         COLLATERAL collateral = new COLLATERAL();
         FIPS_INFORMATION fips_information = null;
         LIABILITIES liabilities = null;
-        SUBJECT_PROPERTY subjectPropertyAddress = null;
+        SUBJECT_PROPERTY subjectProperty = null;
         PROPERTY_DETAIL property_detail = null;
         Node dealNode = getDeal(document);
         LOANS loans = null;
         if(dealNode!=null) {
-            subjectPropertyAddress = getSubjectPropertyAddress(dealNode);
-            fips_information = getFipsInformation(dealNode);
-            property_detail = getPropertyDetail(dealNode);
+            subjectProperty = getSubjectProperty(dealNode);
             liabilities = getLiabilities(dealNode);
             loans = getLoans(dealNode);
 
         }
-        LOCATION_IDENTIFIER location_identifier = new LOCATION_IDENTIFIER();
-        location_identifier.setFIPS_INFORMATION(fips_information);
         collaterals.setCOLLATERAL(collateral);
-        collateral.setSUBJECT_PROPERTY(subjectPropertyAddress);
-        subjectPropertyAddress.setLOCATION_IDENTIFIER(location_identifier);
-        subjectPropertyAddress.setPROPERTY_DETAIL(property_detail);
+        collateral.setSUBJECT_PROPERTY(subjectProperty);
         message.setDEAL_SETS(deal_sets);
         deal_sets.setDEAL_SET(deal_set);
         deal_set.setDEALS(deals);
@@ -83,6 +77,7 @@ public class XmlProcessingService {
         deal.setLIABILITIES(liabilities);
         deal.setCOLLATERALS(collaterals);
         deal.setLOANS(loans);
+
         return message;
     }
 
@@ -129,6 +124,7 @@ public class XmlProcessingService {
         CLOSING_INFORMATION closing_information = new CLOSING_INFORMATION();
         HOUSING_EXPENSES housing_expenses = new HOUSING_EXPENSES();
         LOAN_DETAIL loan_detail = new LOAN_DETAIL();
+        TERMS_OF_LOAN terms_of_loan = new TERMS_OF_LOAN();
         for(int i=0;i<nodeList.getLength();i++){
             Node node = nodeList.item(i);
             if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("AMORTIZATION"))
@@ -155,13 +151,30 @@ public class XmlProcessingService {
                 loan_detail = getLoanDetail(eElement);
 
             }
+            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("TERMS_OF_LOAN"))
+            {
+                Element eElement = (Element) node;
+                terms_of_loan = getTermsOfLoan(eElement);
 
+            }
         }
         loan.setHOUSING_EXPENSES(housing_expenses);
         loan.setCLOSING_INFORMATION(closing_information);
         loan.setAMORTIZATION(amortization);
         loan.setLOAN_DETAIL(loan_detail);
+        loan.setTERMS_OF_LOAN(terms_of_loan);
         return loan;
+    }
+    private TERMS_OF_LOAN getTermsOfLoan(Element termsOfLoanElement){
+        TERMS_OF_LOAN terms_of_loan = new TERMS_OF_LOAN();
+        terms_of_loan.setBaseLoanAmount(returnDoubleZeroIfBlank(termsOfLoanElement.getElementsByTagName("BaseLoanAmount").item(0).getTextContent()));
+        terms_of_loan.setLienPriorityType(termsOfLoanElement.getElementsByTagName("LienPriorityType").item(0).getTextContent());
+        terms_of_loan.setLoanPurposeType(termsOfLoanElement.getElementsByTagName("LoanPurposeType").item(0).getTextContent());
+        terms_of_loan.setMortgageType(termsOfLoanElement.getElementsByTagName("MortgageType").item(0).getTextContent());
+        terms_of_loan.setNoteAmount(returnDoubleZeroIfBlank(termsOfLoanElement.getElementsByTagName("NoteAmount").item(0).getTextContent()));
+        terms_of_loan.setNoteRatePercent(returnDoubleZeroIfBlank(termsOfLoanElement.getElementsByTagName("NoteRatePercent").item(0).getTextContent()));
+        return terms_of_loan;
+
     }
 
     private LOAN_DETAIL getLoanDetail(Element loanDeatailElement){
@@ -252,43 +265,24 @@ public class XmlProcessingService {
     }
 
 
-    private SALES_CONTRACT_DETAIL getSalesContractDetail(Node dealNode) throws XPathExpressionException {
-        NodeList nodeList = getNodeList(dealNode,"./DEAL/COLLATERALS/COLLATERAL/SUBJECT_PROPERTY/SALES_CONTRACTS/SALES_CONTRACT/SALES_CONTRACT_DETAIL");
+    private SALES_CONTRACT_DETAIL getSalesContractDetail(Element salesContacDetailElement) throws XPathExpressionException {
         SALES_CONTRACT_DETAIL sales_contract_detail = new SALES_CONTRACT_DETAIL();
-        for (int temp = 0; temp < nodeList.getLength(); temp++)
-        {
-            Node node = nodeList.item(temp);
-            if (node.getNodeType() == Node.ELEMENT_NODE)
-            {
-                Element eElement = (Element) node;
-                sales_contract_detail.setSalesContractAmount(returnDoubleZeroIfBlank(eElement.getElementsByTagName("SalesContractAmount").item(0).getTextContent()));
-            }
-        }
+        sales_contract_detail.setSalesContractAmount(returnDoubleZeroIfBlank(salesContacDetailElement.getElementsByTagName("SalesContractAmount").item(0).getTextContent()));
         return sales_contract_detail;
     }
 
-    private PROPERTY_DETAIL getPropertyDetail(Node dealNode) throws XPathExpressionException {
-        NodeList nodeList = getNodeList(dealNode,"./DEAL/COLLATERALS/COLLATERAL/SUBJECT_PROPERTY/PROPERTY_DETAIL");
+    private PROPERTY_DETAIL getPropertyDetail(Element  propertyDetailElement) throws XPathExpressionException {
         PROPERTY_DETAIL property_detail = new PROPERTY_DETAIL();
-        for (int temp = 0; temp < nodeList.getLength(); temp++)
-        {
-            Node node = nodeList.item(temp);
-            if (node.getNodeType() == Node.ELEMENT_NODE)
-            {
-                Element eElement = (Element) node;
-                property_detail.setCommunityPropertyStateIndicator(returnfalseIfBlank(eElement.getElementsByTagName("CommunityPropertyStateIndicator").item(0).getTextContent()));
-                property_detail.setAttachmentType(eElement.getElementsByTagName("AttachmentType").item(0).getTextContent());
-                property_detail.setFinancedUnitCount(returnZeroIfBlank(eElement.getElementsByTagName("FinancedUnitCount").item(0).getTextContent()));
-                property_detail.setPropertyEstateType(eElement.getElementsByTagName("PropertyEstateType").item(0).getTextContent());
-                property_detail.setPropertyEstimatedValueAmount(returnDoubleZeroIfBlank(eElement.getElementsByTagName("PropertyEstimatedValueAmount").item(0).getTextContent()));
-                property_detail.setPropertyExistingCleanEnergyLienIndicator(returnfalseIfBlank(eElement.getElementsByTagName("PropertyExistingCleanEnergyLienIndicator").item(0).getTextContent()));
-                property_detail.setPropertyInProjectIndicator(returnfalseIfBlank(eElement.getElementsByTagName("PropertyInProjectIndicator").item(0).getTextContent()));
-                property_detail.setPropertyMixedUsageIndicator(returnfalseIfBlank(eElement.getElementsByTagName("PropertyMixedUsageIndicator").item(0).getTextContent()));
-                property_detail.setPropertyUsageType(eElement.getElementsByTagName("PropertyUsageType").item(0).getTextContent());
-                property_detail.setPUDIndicator(returnfalseIfBlank(eElement.getElementsByTagName("PUDIndicator").item(0).getTextContent()));
-
-            }
-        }
+        property_detail.setCommunityPropertyStateIndicator(returnfalseIfBlank(propertyDetailElement.getElementsByTagName("CommunityPropertyStateIndicator").item(0).getTextContent()));
+        property_detail.setAttachmentType(propertyDetailElement.getElementsByTagName("AttachmentType").item(0).getTextContent());
+        property_detail.setFinancedUnitCount(returnZeroIfBlank(propertyDetailElement.getElementsByTagName("FinancedUnitCount").item(0).getTextContent()));
+        property_detail.setPropertyEstateType(propertyDetailElement.getElementsByTagName("PropertyEstateType").item(0).getTextContent());
+        property_detail.setPropertyEstimatedValueAmount(returnDoubleZeroIfBlank(propertyDetailElement.getElementsByTagName("PropertyEstimatedValueAmount").item(0).getTextContent()));
+        property_detail.setPropertyExistingCleanEnergyLienIndicator(returnfalseIfBlank(propertyDetailElement.getElementsByTagName("PropertyExistingCleanEnergyLienIndicator").item(0).getTextContent()));
+        property_detail.setPropertyInProjectIndicator(returnfalseIfBlank(propertyDetailElement.getElementsByTagName("PropertyInProjectIndicator").item(0).getTextContent()));
+        property_detail.setPropertyMixedUsageIndicator(returnfalseIfBlank(propertyDetailElement.getElementsByTagName("PropertyMixedUsageIndicator").item(0).getTextContent()));
+        property_detail.setPropertyUsageType(propertyDetailElement.getElementsByTagName("PropertyUsageType").item(0).getTextContent());
+        property_detail.setPUDIndicator(returnfalseIfBlank(propertyDetailElement.getElementsByTagName("PUDIndicator").item(0).getTextContent()));
         return property_detail;
     }
     private LIABILITIES getLiabilities(Node dealNode) throws XPathExpressionException {
@@ -353,46 +347,96 @@ public class XmlProcessingService {
         }
         return liability_detail;
     }
-
-
-    private SUBJECT_PROPERTY getSubjectPropertyAddress(Node dealNode) throws XPathExpressionException {
+    private SUBJECT_PROPERTY getSubjectProperty(Node dealNode) throws XPathExpressionException {
         SUBJECT_PROPERTY subject_property = new SUBJECT_PROPERTY();
-        XPath xPath = XPathFactory.newInstance().newXPath();
-        String expression = "./DEAL/COLLATERALS/COLLATERAL/SUBJECT_PROPERTY/ADDRESS";
-        NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(dealNode, XPathConstants.NODESET);
         ADDRESS address = new ADDRESS();
-        for (int temp = 0; temp < nodeList.getLength(); temp++)
-        {
-            Node node = nodeList.item(temp);
-           if (node.getNodeType() == Node.ELEMENT_NODE)
-            {
-                //Print each employee's detail
-                Element eElement = (Element) node;
-                address.setCountyName(eElement.getElementsByTagName("CountyName").item(0).getTextContent());
-                address.setCityName(eElement.getElementsByTagName("CountyName").item(0).getTextContent());
-                address.setAddressLineText(eElement.getElementsByTagName("AddressLineText").item(0).getTextContent());
+        String expression = "./DEAL/COLLATERALS/COLLATERAL/SUBJECT_PROPERTY";
+        NodeList nodeList = getNodeList(dealNode,expression);
+        LOCATION_IDENTIFIER location_identifier = new LOCATION_IDENTIFIER();
+        PROPERTY_DETAIL property_detail = new PROPERTY_DETAIL();
+        NodeList nodeList1 = nodeList.item(0).getChildNodes();
+        SALES_CONTRACTS sales_contracts = new SALES_CONTRACTS();
+        if(nodeList1.getLength()>0) {
+            for (int temp = 0; temp < nodeList1.getLength(); temp++) {
+                Node node = nodeList1.item(temp);
+                if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("ADDRESS")) {
+                    Element eElement = (Element) node;
+                    address = getSubjectPropertyAddress(eElement);
+                }
+                if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("LOCATION_IDENTIFIER")) {
+                    Element eElement = (Element) node;
+                    location_identifier = getLocationIdentifier(eElement);
+                }
+                if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("PROPERTY_DETAIL")) {
+                    Element eElement = (Element) node;
+                    property_detail = getPropertyDetail(eElement);
+                }
+                if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("SALES_CONTRACTS")) {
+                    Element eElement = (Element) node;
+                    sales_contracts = getSalesContacts(eElement);
+                }
             }
         }
+
+        subject_property.setLOCATION_IDENTIFIER(location_identifier);
         subject_property.setADDRESS(address);
+        subject_property.setLOCATION_IDENTIFIER(location_identifier);
+        subject_property.setPROPERTY_DETAIL(property_detail);
+        subject_property.setSALES_CONTRACTS(sales_contracts);
         return subject_property;
+    }
+    private SALES_CONTRACTS getSalesContacts(Element salesContacts) throws XPathExpressionException {
+        SALES_CONTRACTS sales_contracts = new SALES_CONTRACTS();
+        NodeList nodeList = salesContacts.getElementsByTagName("SALES_CONTRACT");
+        SALES_CONTRACT sales_contract = new SALES_CONTRACT();
+        if(nodeList.getLength()>0) {
+            Element salesContactElement = (Element)nodeList.item(0);
+            sales_contract = getSalesContact(salesContactElement);
         }
+        sales_contracts.setSALES_CONTRACT(sales_contract);
+        return sales_contracts;
+   }
+   private SALES_CONTRACT getSalesContact(Element salesContactElement) throws XPathExpressionException {
+       SALES_CONTRACT sales_contract = new SALES_CONTRACT();
+       SALES_CONTRACT_DETAIL sales_contract_detail = new SALES_CONTRACT_DETAIL();
+       NodeList nodeList = salesContactElement.getElementsByTagName("SALES_CONTRACT_DETAIL");
+       if(nodeList.getLength()>0) {
+           Element salesContactDetailElement = (Element)nodeList.item(0);
+           sales_contract_detail = getSalesContractDetail(salesContactDetailElement);
+       }
+       sales_contract.setSALES_CONTRACT_DETAIL(sales_contract_detail);
+       return sales_contract;
+   }
 
 
-    private FIPS_INFORMATION getFipsInformation(Node dealNode)throws XPathExpressionException{
-        XPath xPath = XPathFactory.newInstance().newXPath();
-        String expression = "./DEAL/COLLATERALS/COLLATERAL/SUBJECT_PROPERTY/LOCATION_IDENTIFIER/FIPS_INFORMATION";
-        NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(dealNode, XPathConstants.NODESET);
+    private LOCATION_IDENTIFIER getLocationIdentifier(Element locationIdentifierElement) throws XPathExpressionException {
+        LOCATION_IDENTIFIER location_identifier = new LOCATION_IDENTIFIER();
         FIPS_INFORMATION fips_information = new FIPS_INFORMATION();
-        for (int temp = 0; temp < nodeList.getLength(); temp++)
-        {
-            Node node = nodeList.item(temp);
-            if (node.getNodeType() == Node.ELEMENT_NODE)
-            {
-                 Element eElement = (Element) node;
-                fips_information.setFIPSCountyCode(returnZeroIfBlank(eElement.getElementsByTagName("FIPSCountyCode").item(0).getTextContent()));
-                fips_information.setFIPSStateNumericCode(returnZeroIfBlank(eElement.getElementsByTagName("FIPSStateNumericCode").item(0).getTextContent()));
-            }
+        NodeList nodeList = locationIdentifierElement.getElementsByTagName("FIPS_INFORMATION");
+        if(nodeList.getLength() > 0){
+            Element eElement = (Element) nodeList.item(0);
+            fips_information = getFipsInformation(eElement);
+
         }
+        location_identifier.setFIPS_INFORMATION(fips_information);
+        return location_identifier;
+    }
+
+
+
+    private ADDRESS getSubjectPropertyAddress(Element addressElement) throws XPathExpressionException {
+        ADDRESS address = new ADDRESS();
+        address.setCountyName(addressElement.getElementsByTagName("CountyName").item(0).getTextContent());
+        address.setCityName(addressElement.getElementsByTagName("CountyName").item(0).getTextContent());
+        address.setAddressLineText(addressElement.getElementsByTagName("AddressLineText").item(0).getTextContent());
+        return address;
+     }
+
+
+    private FIPS_INFORMATION getFipsInformation(Element fipsInformationElement)throws XPathExpressionException{
+        FIPS_INFORMATION fips_information = new FIPS_INFORMATION();
+        fips_information.setFIPSCountyCode(returnZeroIfBlank(fipsInformationElement.getElementsByTagName("FIPSCountyCode").item(0).getTextContent()));
+        fips_information.setFIPSStateNumericCode(returnZeroIfBlank(fipsInformationElement.getElementsByTagName("FIPSStateNumericCode").item(0).getTextContent()));
         return fips_information;
     }
 
