@@ -1,7 +1,11 @@
 package com.lh.pos.bff.service;
 
-import com.lh.pos.dom.ADDRESS;
-import com.lh.pos.dom.FIPS_INFORMATION;
+import com.lh.pos.bff.collection.LoanApplication;
+import com.lh.pos.bff.dom.ADDRESS;
+import com.lh.pos.bff.dom.FIPS_INFORMATION;
+import com.lh.pos.bff.dom.MESSAGE;
+import com.lh.pos.bff.repository.LoanApplicationRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -21,6 +25,8 @@ import javax.xml.xpath.XPathFactory;
 
 @Service
 public class XmlProcessingService {
+    @Autowired
+    LoanApplicationRepository loanApplicationRepository;
 
     public void process(){
         JAXBContext jaxbContext;
@@ -32,11 +38,20 @@ public class XmlProcessingService {
             Document document = builder.parse(resource.getFile());
             ADDRESS subjectPropertyAddress = getSubjectPropertyAddress(document);
             FIPS_INFORMATION fips_information = getFipsInformation(document);
+            MESSAGE message = new MESSAGE();
+            save(message);
         }
         catch (Exception  e)
         {
             e.printStackTrace();
         }
+    }
+    private boolean save(MESSAGE message){
+        LoanApplication loanApplication = new LoanApplication();
+        loanApplication.setMessage(message);
+        loanApplicationRepository.save(loanApplication);
+        return true;
+
     }
 
     private ADDRESS getSubjectPropertyAddress(Document document) throws XPathExpressionException {

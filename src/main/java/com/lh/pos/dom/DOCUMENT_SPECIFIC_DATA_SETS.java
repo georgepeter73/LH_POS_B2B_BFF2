@@ -1,5 +1,0 @@
-package com.lh.pos.dom;
-
-public class DOCUMENT_SPECIFIC_DATA_SETS {
-	public DOCUMENT_SPECIFIC_DATA_SET DOCUMENT_SPECIFIC_DATA_SET;
-}
