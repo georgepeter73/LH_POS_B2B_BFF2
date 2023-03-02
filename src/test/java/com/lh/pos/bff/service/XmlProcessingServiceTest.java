@@ -11,7 +11,7 @@ import org.springframework.test.context.TestPropertySource;
 
 @Slf4j
 @SpringBootTest
-@TestPropertySource(locations = "classpath:application.properties")
+@TestPropertySource(locations = "classpath:application-test.properties")
 @EnableConfigurationProperties
 
 public class XmlProcessingServiceTest extends AbstractTest {
