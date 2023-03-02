@@ -11,14 +11,16 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,30 +29,61 @@ import java.util.List;
 public class XmlProcessingService {
     @Autowired
     LoanApplicationRepository loanApplicationRepository;
-
     public void process(){
-        JAXBContext jaxbContext;
         try
         {
-            Resource resource = new ClassPathResource("sample.xml");
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document document = builder.parse(resource.getFile());
-            Node dealNode = getDeal(document);
-            if(dealNode!=null) {
-                ADDRESS subjectPropertyAddress = getSubjectPropertyAddress(dealNode);
-                FIPS_INFORMATION fips_information = getFipsInformation(dealNode);
-                PROPERTY_DETAIL property_detail = getPropertyDetail(dealNode);
-                LIABILITIES liabilities = getLiabilities(dealNode);
-                System.out.println(liabilities.getLIABILITY().size());
-            }
-            //MESSAGE message = new MESSAGE();
-            //save(message);
+            Document document = get34Document();
+            MESSAGE message = getMessage(document);
+            save(message);
         }
         catch (Exception  e)
         {
             e.printStackTrace();
         }
+    }
+    private Document get34Document() throws ParserConfigurationException, IOException, SAXException {
+        Resource resource = new ClassPathResource("sample.xml");
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(resource.getFile());
+        return document;
+    }
+    private MESSAGE getMessage(Document document) throws XPathExpressionException {
+        MESSAGE message = new MESSAGE();
+        DEAL_SETS deal_sets = new DEAL_SETS();
+        DEAL_SET deal_set = new DEAL_SET();
+        DEALS deals = new DEALS();
+        DEAL deal = new DEAL();
+        COLLATERALS collaterals = new COLLATERALS();
+        COLLATERAL collateral = new COLLATERAL();
+        FIPS_INFORMATION fips_information = null;
+        LIABILITIES liabilities = null;
+        SUBJECT_PROPERTY subjectPropertyAddress = null;
+        PROPERTY_DETAIL property_detail = null;
+        Node dealNode = getDeal(document);
+        LOANS loans = null;
+        if(dealNode!=null) {
+            subjectPropertyAddress = getSubjectPropertyAddress(dealNode);
+            fips_information = getFipsInformation(dealNode);
+            property_detail = getPropertyDetail(dealNode);
+            liabilities = getLiabilities(dealNode);
+            loans = getLoans(dealNode);
+
+        }
+        LOCATION_IDENTIFIER location_identifier = new LOCATION_IDENTIFIER();
+        location_identifier.setFIPS_INFORMATION(fips_information);
+        collaterals.setCOLLATERAL(collateral);
+        collateral.setSUBJECT_PROPERTY(subjectPropertyAddress);
+        subjectPropertyAddress.setLOCATION_IDENTIFIER(location_identifier);
+        subjectPropertyAddress.setPROPERTY_DETAIL(property_detail);
+        message.setDEAL_SETS(deal_sets);
+        deal_sets.setDEAL_SET(deal_set);
+        deal_set.setDEALS(deals);
+        deals.setDEAL(deal);
+        deal.setLIABILITIES(liabilities);
+        deal.setCOLLATERALS(collaterals);
+        deal.setLOANS(loans);
+        return message;
     }
 
     private boolean save(MESSAGE message){
@@ -60,6 +93,7 @@ public class XmlProcessingService {
         return true;
 
     }
+
     private Node getDeal(Document document)throws XPathExpressionException{
         XPath xPath = XPathFactory.newInstance().newXPath();
         String expression = "/MESSAGE/DEAL_SETS/DEAL_SET/DEALS";
@@ -68,6 +102,94 @@ public class XmlProcessingService {
             return nodeList.item(0);
         }
         return null;
+    }
+    private LOANS getLoans(Node dealNode) throws XPathExpressionException {
+        LOANS loans = new LOANS();
+        LOAN loan = null;
+        NodeList nodeList = getNodeList(dealNode,"./DEAL/LOANS");
+       if(nodeList.getLength()>0){
+           NodeList loanNodeList = nodeList.item(0).getChildNodes();
+           for(int i=0;i<loanNodeList.getLength();i++){
+               Node node = loanNodeList.item(i);
+               if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("LOAN"))
+               {
+                   Element eElement = (Element) node;
+                   loan = getLoan(eElement);
+
+               }
+           }
+           loans.setLOAN(loan);
+       }
+       return loans;
+    }
+    private LOAN getLoan(Node loanElement){
+        LOAN loan = new LOAN();
+        NodeList nodeList = loanElement.getChildNodes();
+        AMORTIZATION amortization = null;
+        CLOSING_INFORMATION closing_information = new CLOSING_INFORMATION();
+        for(int i=0;i<nodeList.getLength();i++){
+            Node node = nodeList.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("AMORTIZATION"))
+            {
+                Element eElement = (Element) node;
+                amortization = getAmortization(eElement);
+
+            }
+            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("CLOSING_INFORMATION"))
+            {
+                Element eElement = (Element) node;
+                closing_information = getClosingInformation(eElement);
+
+            }
+        }
+        loan.setCLOSING_INFORMATION(closing_information);
+        loan.setAMORTIZATION(amortization);
+        return loan;
+    }
+    private CLOSING_INFORMATION getClosingInformation(Element closingInformationElement){
+        CLOSING_INFORMATION closing_information = new CLOSING_INFORMATION();
+        CLOSING_INFORMATION_DETAIL closing_information_detail = new CLOSING_INFORMATION_DETAIL();
+        NodeList nodeList = closingInformationElement.getChildNodes();
+        for(int i=0;i<nodeList.getLength();i++){
+            Node node = nodeList.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("CLOSING_INFORMATION_DETAIL"))
+            {
+                Element eElement = (Element) node;
+                closing_information_detail = getClosingInformationDetail(eElement);
+
+            }
+        }
+        closing_information.setCLOSING_INFORMATION_DETAIL(closing_information_detail);
+        return closing_information;
+
+    }
+    private CLOSING_INFORMATION_DETAIL getClosingInformationDetail(Element closingInformationDetailElement){
+        CLOSING_INFORMATION_DETAIL closing_information_detail = new CLOSING_INFORMATION_DETAIL();
+        closing_information_detail.setCashFromBorrowerAtClosingAmount(returnDoubleZeroIfBlank(closingInformationDetailElement.getElementsByTagName("CashFromBorrowerAtClosingAmount").item(0).getTextContent()));
+        return closing_information_detail;
+    }
+    private AMORTIZATION getAmortization(Element amortizationElement){
+        AMORTIZATION amortization = new AMORTIZATION();
+        NodeList nodeList = amortizationElement.getChildNodes();
+        AMORTIZATION_RULE amortization_rule = null;
+        for(int i=0;i<nodeList.getLength();i++){
+            Node node = nodeList.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("AMORTIZATION_RULE"))
+            {
+                Element eElement = (Element) node;
+                amortization_rule = getAmortizationRule(eElement);
+
+            }
+        }
+        amortization.setAMORTIZATION_RULE(amortization_rule);
+        return amortization;
+    }
+    private AMORTIZATION_RULE getAmortizationRule(Element amortizationRuleElement){
+        AMORTIZATION_RULE amortization_rule = new AMORTIZATION_RULE();
+        amortization_rule.setAmortizationType(amortizationRuleElement.getElementsByTagName("AmortizationType").item(0).getTextContent());
+        amortization_rule.setLoanAmortizationPeriodCount(returnZeroIfBlank(amortizationRuleElement.getElementsByTagName("LoanAmortizationPeriodCount").item(0).getTextContent()));
+        amortization_rule.setLoanAmortizationPeriodType(amortizationRuleElement.getElementsByTagName("LoanAmortizationPeriodType").item(0).getTextContent());
+        return amortization_rule;
     }
 
 
@@ -174,7 +296,8 @@ public class XmlProcessingService {
     }
 
 
-    private ADDRESS getSubjectPropertyAddress(Node dealNode) throws XPathExpressionException {
+    private SUBJECT_PROPERTY getSubjectPropertyAddress(Node dealNode) throws XPathExpressionException {
+        SUBJECT_PROPERTY subject_property = new SUBJECT_PROPERTY();
         XPath xPath = XPathFactory.newInstance().newXPath();
         String expression = "./DEAL/COLLATERALS/COLLATERAL/SUBJECT_PROPERTY/ADDRESS";
         NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(dealNode, XPathConstants.NODESET);
@@ -191,7 +314,8 @@ public class XmlProcessingService {
                 address.setAddressLineText(eElement.getElementsByTagName("AddressLineText").item(0).getTextContent());
             }
         }
-        return address;
+        subject_property.setADDRESS(address);
+        return subject_property;
         }
 
 

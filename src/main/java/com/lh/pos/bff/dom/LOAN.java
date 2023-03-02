@@ -1,5 +1,8 @@
 package com.lh.pos.bff.dom;
 
+import lombok.Data;
+
+@Data
 public class LOAN {
 	public AMORTIZATION AMORTIZATION;
 	public CLOSING_INFORMATION CLOSING_INFORMATION;
