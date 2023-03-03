@@ -57,10 +57,8 @@ public class XmlProcessingService {
         RELATIONSHIPS relationships = new RELATIONSHIPS();
         COLLATERALS collaterals = new COLLATERALS();
         COLLATERAL collateral = new COLLATERAL();
-        FIPS_INFORMATION fips_information = null;
         LIABILITIES liabilities = null;
         SUBJECT_PROPERTY subjectProperty = null;
-        PROPERTY_DETAIL property_detail = null;
         Node dealNode = getDeal(document);
         PARTIES parties = null;
         LOANS loans = null;
