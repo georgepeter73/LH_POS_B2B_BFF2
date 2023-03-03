@@ -1,5 +1,8 @@
 package com.lh.pos.bff.dom;
 
+import lombok.Data;
+
+@Data
 public class ROLE {
 	public BORROWER BORROWER;
 	public ROLE_DETAIL ROLE_DETAIL;

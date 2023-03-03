@@ -145,6 +145,8 @@ public class XmlProcessingService {
     private PARTY getParty(Element partyElement){
         PARTY party = new PARTY();
         INDIVIDUAL individual = new INDIVIDUAL();
+        ROLES roles = new ROLES();
+
         NodeList nodeList = partyElement.getChildNodes();
         for(int i=0;i<nodeList.getLength();i++){
             Node node = nodeList.item(i);
@@ -157,6 +159,7 @@ public class XmlProcessingService {
             if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("ROLES"))
             {
                 Element eElement = (Element) node;
+                roles = getRoles(eElement);
 
             }
             if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("TAXPAYER_IDENTIFIERS"))
@@ -171,10 +174,88 @@ public class XmlProcessingService {
             }
 
         }
+        party.setROLES(roles);
         party.setINDIVIDUAL(individual);
         return party;
 
     }
+    private ROLES getRoles(Element rolesElement){
+        ROLES roles = new ROLES();
+        List<ROLE> roleList = new ArrayList<>();
+        NodeList nodeList = rolesElement.getChildNodes();
+        for(int i=0;i<nodeList.getLength();i++) {
+            Node node = nodeList.item(i);
+           if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("ROLE"))
+            {
+                ROLE role = new ROLE();
+                Element eElement = (Element) node;
+                NodeList roleChildList = eElement.getChildNodes();
+                for(int j=0;j<roleChildList.getLength();j++){
+                    Node roleChildListNode = roleChildList.item(j);
+                   if (roleChildListNode.getNodeType() == Node.ELEMENT_NODE && roleChildListNode.getNodeName().equals("BORROWER")) {
+                        Element borrowerElement = (Element) roleChildListNode;
+                        BORROWER borrower = getBorrower(borrowerElement);
+                        role.setBORROWER(borrower);
+                        roleList.add(role);
+                        roles.setROLE(roleList);
+
+
+                    }
+                    if (roleChildListNode.getNodeType() == Node.ELEMENT_NODE && roleChildListNode.getNodeName().equals("ROLE_DETAIL")) {
+                        Element roleDetailElement = (Element) roleChildListNode;
+
+
+                    }
+
+                }
+            }
+
+        }
+
+        return roles;
+    }
+
+    private BORROWER getBorrower(Element borrowerElement){
+       BORROWER borrower = new BORROWER();
+       NodeList borrowerNodeList =  borrowerElement.getChildNodes();
+       for(int i=0;i<borrowerNodeList.getLength();i++){
+           Node borrowerListNode = borrowerNodeList.item(i);
+           if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("BORROWER_DETAIL"))
+           {
+               Element eElement = (Element) borrowerListNode;
+               System.out.println(eElement.getNodeName());
+           }
+           if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("CURRENT_INCOME"))
+           {
+               Element eElement = (Element) borrowerListNode;
+           }
+           if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("DECLARATION"))
+           {
+               Element eElement = (Element) borrowerListNode;
+           }
+           if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("DEPENDENTS"))
+           {
+               Element eElement = (Element) borrowerListNode;
+           }
+           if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("EMPLOYERS"))
+           {
+               Element eElement = (Element) borrowerListNode;
+           }
+           if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("GOVERNMENT_MONITORING"))
+           {
+               Element eElement = (Element) borrowerListNode;
+           }
+           if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("RESIDENCES"))
+           {
+               Element eElement = (Element) borrowerListNode;
+           }
+
+       }
+
+       return borrower;
+    }
+
+
     private INDIVIDUAL getIndividual(Element individualElement){
         INDIVIDUAL individual = new INDIVIDUAL();
         NodeList nodeList = individualElement.getChildNodes();
