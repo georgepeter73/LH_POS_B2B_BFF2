@@ -1,6 +1,5 @@
 package com.lh.pos.bff.service;
 
-import ch.qos.logback.core.model.INamedModel;
 import com.lh.pos.bff.collection.LoanApplication;
 import com.lh.pos.bff.dom.*;
 import com.lh.pos.bff.repository.LoanApplicationRepository;
@@ -181,12 +180,14 @@ public class XmlProcessingService {
     }
     private ROLES getRoles(Element rolesElement){
         ROLES roles = new ROLES();
+
         NodeList nodeList = rolesElement.getChildNodes();
         for(int i=0;i<nodeList.getLength();i++) {
             Node node = nodeList.item(i);
            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("ROLE"))
             {
                 ROLE role = new ROLE();
+                ROLE_DETAIL role_detail = new ROLE_DETAIL();
                 Element eElement = (Element) node;
                 NodeList roleChildList = eElement.getChildNodes();
                 for(int j=0;j<roleChildList.getLength();j++){
@@ -199,6 +200,8 @@ public class XmlProcessingService {
                     }
                     if (roleChildListNode.getNodeType() == Node.ELEMENT_NODE && roleChildListNode.getNodeName().equals("ROLE_DETAIL")) {
                         Element roleDetailElement = (Element) roleChildListNode;
+                        role_detail = getRoleDetail(roleDetailElement);
+                        role.setROLE_DETAIL(role_detail);
 
 
                     }
@@ -207,13 +210,21 @@ public class XmlProcessingService {
             }
 
         }
-
         return roles;
+    }
+      private ROLE_DETAIL getRoleDetail(Element roleDetailElement){
+        ROLE_DETAIL role_detail = new ROLE_DETAIL();
+        role_detail.setPartyRoleType(getTextContentFromElement(roleDetailElement,"PartyRoleType"));
+        return role_detail;
+
     }
 
     private BORROWER getBorrower(Element borrowerElement){
        BORROWER borrower = new BORROWER();
        DECLARATION declaration = new DECLARATION();
+       RESIDENCES residences = new RESIDENCES();
+
+       GOVERNMENT_MONITORING government_monitoring = new GOVERNMENT_MONITORING();
        BORROWER_DETAIL borrower_detail = new BORROWER_DETAIL();
        NodeList borrowerNodeList =  borrowerElement.getChildNodes();
        for(int i=0;i<borrowerNodeList.getLength();i++){
@@ -243,17 +254,67 @@ public class XmlProcessingService {
            if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("GOVERNMENT_MONITORING"))
            {
                Element eElement = (Element) borrowerListNode;
+               government_monitoring = getGovernmentMonitoring(eElement);
            }
            if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("RESIDENCES"))
            {
                Element eElement = (Element) borrowerListNode;
+               residences = getResidences(eElement);
            }
 
        }
-        borrower.setDECLARATION(declaration);
+       borrower.setDECLARATION(declaration);
+       borrower.setGOVERNMENT_MONITORING(government_monitoring);
        borrower.setBORROWER_DETAIL(borrower_detail);
+        borrower.setRESIDENCES(residences);
 
        return borrower;
+    }
+
+
+    private RESIDENCES getResidences(Element residencesElement){
+        RESIDENCES residences = new RESIDENCES();
+        RESIDENCE residence = new RESIDENCE();
+        ADDRESS address = new ADDRESS();
+        RESIDENCE_DETAIL residence_detail = new RESIDENCE_DETAIL();
+        if(residencesElement.getElementsByTagName("RESIDENCE").getLength()>0){
+            Element residenceElement = (Element) residencesElement.getElementsByTagName("RESIDENCE").item(0);
+            if(residenceElement.getElementsByTagName("ADDRESS").getLength()>0){
+                Element addressElement = (Element) residencesElement.getElementsByTagName("ADDRESS").item(0);
+                address.setAddressLineText(getTextContentFromElement(addressElement,"AddressLineText"));
+                address.setCityName(getTextContentFromElement(addressElement,"CityName"));
+                address.setCountryCode(getTextContentFromElement(addressElement,"CountryCode"));
+                address.setPostalCode(getTextContentFromElement(addressElement,"PostalCode"));
+                address.setStateCode(getTextContentFromElement(addressElement,"StateCode"));
+            }
+            if(residenceElement.getElementsByTagName("RESIDENCE_DETAIL").getLength()>0){
+                Element residenceDetailElement = (Element) residencesElement.getElementsByTagName("RESIDENCE_DETAIL").item(0);
+                residence_detail.setBorrowerResidencyBasisType(getTextContentFromElement(residenceDetailElement,"BorrowerResidencyBasisType"));
+                residence_detail.setBorrowerResidencyDurationMonthsCount(returnZeroIfBlank(getTextContentFromElement(residenceDetailElement,"BorrowerResidencyDurationMonthsCount")));
+                residence_detail.setBorrowerResidencyType(getTextContentFromElement(residenceDetailElement,"BorrowerResidencyType"));
+            }
+
+        }
+        residence.setRESIDENCE_DETAIL(residence_detail);
+        residence.setADDRESS(address);
+
+        residences.setRESIDENCE(residence);
+        return residences;
+
+    }
+    private GOVERNMENT_MONITORING getGovernmentMonitoring(Element governmentMonitoringElement){
+        GOVERNMENT_MONITORING government_monitoring = new GOVERNMENT_MONITORING();
+        GOVERNMENT_MONITORING_DETAIL government_monitoring_detail = new GOVERNMENT_MONITORING_DETAIL();
+        if(governmentMonitoringElement.getElementsByTagName("GOVERNMENT_MONITORING_DETAIL").getLength()>0){
+            Element governmentMonitoringDetailElement = (Element) governmentMonitoringElement.getElementsByTagName("GOVERNMENT_MONITORING_DETAIL").item(0);
+            government_monitoring_detail.setHMDAEthnicityRefusalIndicator(returnfalseIfBlank(getTextContentFromElement(governmentMonitoringDetailElement,"HMDAEthnicityRefusalIndicator")));
+            government_monitoring_detail.setHMDAGenderRefusalIndicator(returnfalseIfBlank(getTextContentFromElement(governmentMonitoringDetailElement,"HMDAGenderRefusalIndicator")));
+            government_monitoring_detail.setHMDARaceRefusalIndicator(returnfalseIfBlank(getTextContentFromElement(governmentMonitoringDetailElement,"HMDARaceRefusalIndicator")));
+
+        }
+        government_monitoring.setGOVERNMENT_MONITORING_DETAIL(government_monitoring_detail);
+        return government_monitoring;
+
     }
     private DECLARATION getDeclaration(Element declarationElement){
         DECLARATION declaration = new DECLARATION();
