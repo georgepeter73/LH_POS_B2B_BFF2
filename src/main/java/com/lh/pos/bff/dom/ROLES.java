@@ -6,5 +6,5 @@ import java.util.List;
 
 @Data
 public class ROLES {
-	public ROLE ROLE;
+	public List<ROLE> ROLE;
 }

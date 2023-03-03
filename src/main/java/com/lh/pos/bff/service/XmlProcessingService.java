@@ -54,6 +54,7 @@ public class XmlProcessingService {
         DEAL_SET deal_set = new DEAL_SET();
         DEALS deals = new DEALS();
         DEAL deal = new DEAL();
+        RELATIONSHIPS relationships = new RELATIONSHIPS();
         COLLATERALS collaterals = new COLLATERALS();
         COLLATERAL collateral = new COLLATERAL();
         FIPS_INFORMATION fips_information = null;
@@ -68,6 +69,7 @@ public class XmlProcessingService {
             liabilities = getLiabilities(dealNode);
             loans = getLoans(dealNode);
             parties = getParties(dealNode);
+            relationships = getRelationships(dealNode);
 
         }
         collaterals.setCOLLATERAL(collateral);
@@ -80,8 +82,35 @@ public class XmlProcessingService {
         deal.setCOLLATERALS(collaterals);
         deal.setLOANS(loans);
         deal.setPARTIES(parties);
+        deal.setRELATIONSHIPS(relationships);
 
         return message;
+    }
+    private RELATIONSHIPS getRelationships(Node dealNode){
+        RELATIONSHIPS relationships = new RELATIONSHIPS();
+        List<RELATIONSHIP> relationshipList = new ArrayList<>();
+        Element dealNodeElement = (Element) dealNode;
+
+        if(dealNodeElement.getElementsByTagName("RELATIONSHIPS").getLength()>0){
+            Element relationshipsElement = (Element) dealNodeElement.getElementsByTagName("RELATIONSHIPS").item(0);
+            NodeList relationShipNodeList = relationshipsElement.getElementsByTagName("RELATIONSHIP");
+            for(int i=0;i<relationShipNodeList.getLength();i++){
+                Element relationShipElement = (Element) relationShipNodeList.item(i);
+                RELATIONSHIP relationship = new RELATIONSHIP();
+                relationship.setArcrole(relationShipElement.getAttribute("xlink:arcrole"));
+                relationship.setSequenceNumber(returnZeroIfBlank(relationShipElement.getAttribute("SequenceNumber")));
+                relationship.setFrom(relationShipElement.getAttribute("xlink:from"));
+                relationship.setTo(relationShipElement.getAttribute("xlink:to"));
+                relationshipList.add(relationship);
+            }
+
+
+        }
+        relationships.setRELATIONSHIP(relationshipList);
+        return relationships;
+
+
+
     }
 
     private boolean save(MESSAGE message){
@@ -180,6 +209,7 @@ public class XmlProcessingService {
     }
     private ROLES getRoles(Element rolesElement){
         ROLES roles = new ROLES();
+        List<ROLE> roleList = new ArrayList<>();
 
         NodeList nodeList = rolesElement.getChildNodes();
         for(int i=0;i<nodeList.getLength();i++) {
@@ -196,7 +226,8 @@ public class XmlProcessingService {
                         Element borrowerElement = (Element) roleChildListNode;
                         BORROWER borrower = getBorrower(borrowerElement);
                         role.setBORROWER(borrower);
-                        roles.setROLE(role);
+
+
                     }
                     if (roleChildListNode.getNodeType() == Node.ELEMENT_NODE && roleChildListNode.getNodeName().equals("ROLE_DETAIL")) {
                         Element roleDetailElement = (Element) roleChildListNode;
@@ -207,6 +238,8 @@ public class XmlProcessingService {
                     }
 
                 }
+                roleList.add(role);
+                roles.setROLE(roleList);
             }
 
         }
@@ -223,9 +256,10 @@ public class XmlProcessingService {
        BORROWER borrower = new BORROWER();
        DECLARATION declaration = new DECLARATION();
        RESIDENCES residences = new RESIDENCES();
-
+       CURRENT_INCOME current_income = new CURRENT_INCOME();
        GOVERNMENT_MONITORING government_monitoring = new GOVERNMENT_MONITORING();
        BORROWER_DETAIL borrower_detail = new BORROWER_DETAIL();
+       EMPLOYERS employers = new EMPLOYERS();
        NodeList borrowerNodeList =  borrowerElement.getChildNodes();
        for(int i=0;i<borrowerNodeList.getLength();i++){
            Node borrowerListNode = borrowerNodeList.item(i);
@@ -237,6 +271,7 @@ public class XmlProcessingService {
            if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("CURRENT_INCOME"))
            {
                Element eElement = (Element) borrowerListNode;
+               current_income = getCurrentIncome(eElement);
            }
            if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("DECLARATION"))
            {
@@ -250,6 +285,7 @@ public class XmlProcessingService {
            if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("EMPLOYERS"))
            {
                Element eElement = (Element) borrowerListNode;
+               employers = getEmployers(eElement);
            }
            if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("GOVERNMENT_MONITORING"))
            {
@@ -263,12 +299,131 @@ public class XmlProcessingService {
            }
 
        }
+       borrower.setCURRENT_INCOME(current_income);
        borrower.setDECLARATION(declaration);
        borrower.setGOVERNMENT_MONITORING(government_monitoring);
        borrower.setBORROWER_DETAIL(borrower_detail);
-        borrower.setRESIDENCES(residences);
+       borrower.setRESIDENCES(residences);
+       borrower.setEMPLOYERS(employers);
 
        return borrower;
+    }
+
+    private EMPLOYERS getEmployers(Element employersElement){
+        EMPLOYERS employers = new EMPLOYERS();
+        List<EMPLOYER> employerList = new ArrayList<>();
+        NodeList employerNodeList = employersElement.getElementsByTagName("EMPLOYER");
+        for(int i=0;i<employerNodeList.getLength();i++){
+            Element employerElement = (Element) employerNodeList.item(i);
+            employerList.add(getEmployer(employerElement));
+        }
+        employers.setEMPLOYER(employerList);
+        return employers;
+    }
+    private EMPLOYER getEmployer(Element employerElement){
+        EMPLOYER employer = new EMPLOYER();
+        ADDRESS address = new ADDRESS();
+        EMPLOYMENT employment = new EMPLOYMENT();
+        LEGAL_ENTITY legal_entity = new LEGAL_ENTITY();
+        LEGAL_ENTITY_DETAIL legal_entity_detail = new LEGAL_ENTITY_DETAIL();
+        CONTACTS contacts = new CONTACTS();
+        CONTACT contact = new CONTACT();
+        CONTACT_POINTS contact_points = new CONTACT_POINTS();
+        CONTACT_POINT contact_point = new CONTACT_POINT();
+        CONTACT_POINT_TELEPHONE contactPointTelephone = new CONTACT_POINT_TELEPHONE();
+        employer.setLabel(employerElement.getAttribute("xlink:label"));
+        employer.setSequenceNumber(returnZeroIfBlank(employerElement.getAttribute("SequenceNumber")));
+        if(employerElement.getElementsByTagName("CONTACT_POINT_TELEPHONE").getLength()>0){
+            Element contactPointTelephoneElement = (Element) employerElement.getElementsByTagName("CONTACT_POINT_TELEPHONE").item(0);
+            contactPointTelephone.setContactPointTelephoneValue(getTextContentFromElement(contactPointTelephoneElement,"ContactPointTelephoneValue"));
+        }
+        if(employerElement.getElementsByTagName("LEGAL_ENTITY_DETAIL").getLength()>0){
+            Element legalEntityDetailElement = (Element) employerElement.getElementsByTagName("LEGAL_ENTITY_DETAIL").item(0);
+            legal_entity_detail.setFullName(getTextContentFromElement(legalEntityDetailElement,"FullName"));
+        }
+        if(employerElement.getElementsByTagName("ADDRESS").getLength()>0){
+            Element addressElement = (Element) employerElement.getElementsByTagName("ADDRESS").item(0);
+            address = getAddress(addressElement);
+
+        }
+        if(employerElement.getElementsByTagName("EMPLOYMENT").getLength()>0){
+            Element employmentElement = (Element) employerElement.getElementsByTagName("EMPLOYMENT").item(0);
+            employment = getEmployment(employmentElement);
+
+        }
+        contact_point.setCONTACT_POINT_TELEPHONE(contactPointTelephone);
+        contact_points.setCONTACT_POINT(contact_point);
+        contact.setCONTACT_POINTS(contact_points);
+        contacts.setCONTACT(contact);
+        legal_entity.setLEGAL_ENTITY_DETAIL(legal_entity_detail);
+        legal_entity.setCONTACTS(contacts);
+        employer.setLEGAL_ENTITY(legal_entity);
+        employer.setADDRESS(address);
+        employer.setEMPLOYMENT(employment);
+
+        return employer;
+
+    }
+    private EMPLOYMENT getEmployment(Element employmentElement){
+        EMPLOYMENT employment = new EMPLOYMENT();
+        employment.setSpecialBorrowerEmployerRelationshipIndicator(returnfalseIfBlank(getTextContentFromElement(employmentElement,"EmploymentBorrowerSelfEmployedIndicator")));
+        employment.setEmploymentClassificationType(getTextContentFromElement(employmentElement,"EmploymentClassificationType"));
+        employment.setEmploymentPositionDescription(getTextContentFromElement(employmentElement,"EmploymentPositionDescription"));
+        employment.setEmploymentStartDate(getTextContentFromElement(employmentElement,"EmploymentStartDate"));
+        employment.setEmploymentStatusType(getTextContentFromElement(employmentElement,"EmploymentStatusType"));
+        employment.setEmploymentTimeInLineOfWorkMonthsCount(returnZeroIfBlank(getTextContentFromElement(employmentElement,"EmploymentTimeInLineOfWorkMonthsCount")));
+        employment.setSpecialBorrowerEmployerRelationshipIndicator(returnfalseIfBlank(getTextContentFromElement(employmentElement,"SpecialBorrowerEmployerRelationshipIndicator")));
+        return employment;
+    }
+    private ADDRESS getAddress(Element addressElement){
+        ADDRESS address = new ADDRESS();
+        address.setAddressLineText(getTextContentFromElement(addressElement,"AddressLineText"));
+        address.setCityName(getTextContentFromElement(addressElement,"CityName"));
+        address.setCountryCode(getTextContentFromElement(addressElement,"CountryCode"));
+        address.setPostalCode(getTextContentFromElement(addressElement,"PostalCode"));
+        address.setStateCode(getTextContentFromElement(addressElement,"StateCode"));
+        return address;
+    }
+
+    private CURRENT_INCOME getCurrentIncome(Element currentIncomeElement){
+        CURRENT_INCOME current_income = new CURRENT_INCOME();
+        CURRENT_INCOME_ITEMS currentIncomeItems = new CURRENT_INCOME_ITEMS();
+        if(currentIncomeElement.getElementsByTagName("CURRENT_INCOME_ITEMS").getLength()>0){
+            Element currentIncomeItemsElement = (Element) currentIncomeElement.getElementsByTagName("CURRENT_INCOME_ITEMS").item(0);
+            currentIncomeItems = getCurrentIncomeItems(currentIncomeItemsElement);
+        }
+
+        current_income.setCURRENT_INCOME_ITEMS(currentIncomeItems);
+        return current_income;
+
+    }
+    private CURRENT_INCOME_ITEMS getCurrentIncomeItems(Element currentIncomeItemsElement){
+        CURRENT_INCOME_ITEMS currentIncomeItems = new CURRENT_INCOME_ITEMS();
+        List<CURRENT_INCOME_ITEM> currentIncomeItems1 = new ArrayList<>();
+        NodeList currentIncomeItemList = currentIncomeItemsElement.getElementsByTagName("CURRENT_INCOME_ITEM");
+        for(int i=0;i<currentIncomeItemList.getLength();i++){
+            Element currentIncomeItem = (Element) currentIncomeItemList.item(i);
+            currentIncomeItems1.add(getCurrentIncomeItem(currentIncomeItem));
+        }
+        currentIncomeItems.setCURRENT_INCOME_ITEM(currentIncomeItems1);
+        return currentIncomeItems;
+
+    }
+
+    private CURRENT_INCOME_ITEM getCurrentIncomeItem(Element currentIncomeItemElement){
+        CURRENT_INCOME_ITEM currentIncomeItem = new CURRENT_INCOME_ITEM();
+        CURRENT_INCOME_ITEM_DETAIL current_income_item_detail = new CURRENT_INCOME_ITEM_DETAIL();
+        if(currentIncomeItemElement.getElementsByTagName("CURRENT_INCOME_ITEM_DETAIL").getLength()>0){
+            Element currentIncomeItemDetail = (Element) currentIncomeItemElement.getElementsByTagName("CURRENT_INCOME_ITEM_DETAIL").item(0);
+            current_income_item_detail.setCurrentIncomeMonthlyTotalAmount(returnDoubleZeroIfBlank(getTextContentFromElement(currentIncomeItemDetail,"CurrentIncomeMonthlyTotalAmount")));
+            current_income_item_detail.setEmploymentIncomeIndicator(returnfalseIfBlank(getTextContentFromElement(currentIncomeItemDetail,"EmploymentIncomeIndicator")));
+            current_income_item_detail.setIncomeType(getTextContentFromElement(currentIncomeItemDetail,"IncomeType"));
+        }
+        currentIncomeItem.setLabel(currentIncomeItemElement.getAttribute("xlink:label"));
+        currentIncomeItem.setSequenceNumber(returnZeroIfBlank(currentIncomeItemElement.getAttribute("SequenceNumber")));
+        currentIncomeItem.setCURRENT_INCOME_ITEM_DETAIL(current_income_item_detail);
+        return currentIncomeItem;
+
     }
 
 
@@ -281,11 +436,7 @@ public class XmlProcessingService {
             Element residenceElement = (Element) residencesElement.getElementsByTagName("RESIDENCE").item(0);
             if(residenceElement.getElementsByTagName("ADDRESS").getLength()>0){
                 Element addressElement = (Element) residencesElement.getElementsByTagName("ADDRESS").item(0);
-                address.setAddressLineText(getTextContentFromElement(addressElement,"AddressLineText"));
-                address.setCityName(getTextContentFromElement(addressElement,"CityName"));
-                address.setCountryCode(getTextContentFromElement(addressElement,"CountryCode"));
-                address.setPostalCode(getTextContentFromElement(addressElement,"PostalCode"));
-                address.setStateCode(getTextContentFromElement(addressElement,"StateCode"));
+                address = getAddress(addressElement);
             }
             if(residenceElement.getElementsByTagName("RESIDENCE_DETAIL").getLength()>0){
                 Element residenceDetailElement = (Element) residencesElement.getElementsByTagName("RESIDENCE_DETAIL").item(0);
@@ -629,7 +780,7 @@ public class XmlProcessingService {
                 Node node = nodeList1.item(temp);
                 if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("ADDRESS")) {
                     Element eElement = (Element) node;
-                    address = getSubjectPropertyAddress(eElement);
+                    address = getAddress(eElement);
                 }
                 if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("LOCATION_IDENTIFIER")) {
                     Element eElement = (Element) node;
@@ -691,17 +842,7 @@ public class XmlProcessingService {
     }
 
 
-
-    private ADDRESS getSubjectPropertyAddress(Element addressElement) throws XPathExpressionException {
-        ADDRESS address = new ADDRESS();
-        address.setCountyName(addressElement.getElementsByTagName("CountyName").item(0).getTextContent());
-        address.setCityName(addressElement.getElementsByTagName("CountyName").item(0).getTextContent());
-        address.setAddressLineText(addressElement.getElementsByTagName("AddressLineText").item(0).getTextContent());
-        return address;
-     }
-
-
-    private FIPS_INFORMATION getFipsInformation(Element fipsInformationElement)throws XPathExpressionException{
+   private FIPS_INFORMATION getFipsInformation(Element fipsInformationElement)throws XPathExpressionException{
         FIPS_INFORMATION fips_information = new FIPS_INFORMATION();
         fips_information.setFIPSCountyCode(returnZeroIfBlank(fipsInformationElement.getElementsByTagName("FIPSCountyCode").item(0).getTextContent()));
         fips_information.setFIPSStateNumericCode(returnZeroIfBlank(fipsInformationElement.getElementsByTagName("FIPSStateNumericCode").item(0).getTextContent()));
