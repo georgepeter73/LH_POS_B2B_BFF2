@@ -173,6 +173,7 @@ public class XmlProcessingService {
     private PARTY getParty(Element partyElement){
         PARTY party = new PARTY();
         INDIVIDUAL individual = new INDIVIDUAL();
+        TAXPAYER_IDENTIFIERS taxpayerIdentifiers = new TAXPAYER_IDENTIFIERS();
         ROLES roles = new ROLES();
 
         NodeList nodeList = partyElement.getChildNodes();
@@ -193,18 +194,26 @@ public class XmlProcessingService {
             if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("TAXPAYER_IDENTIFIERS"))
             {
                 Element eElement = (Element) node;
+                taxpayerIdentifiers = getTaxpayerIdentifiers(eElement);
+
 
             }
-            if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals("TAXPAYER_IDENTIFIERS"))
-            {
-                Element eElement = (Element) node;
 
-            }
 
         }
         party.setROLES(roles);
         party.setINDIVIDUAL(individual);
+        party.setTAXPAYER_IDENTIFIERS(taxpayerIdentifiers);
         return party;
+
+    }
+    private TAXPAYER_IDENTIFIERS getTaxpayerIdentifiers(Element taxPayerIdentifierElement){
+        TAXPAYER_IDENTIFIERS taxpayerIdentifiers = new TAXPAYER_IDENTIFIERS();
+        TAXPAYER_IDENTIFIER taxpayerIdentifier = new TAXPAYER_IDENTIFIER();
+        taxpayerIdentifier.setTaxpayerIdentifierValue(getTextContentFromElement(taxPayerIdentifierElement,"TaxpayerIdentifierType"));
+        taxpayerIdentifier.setTaxpayerIdentifierType(getTextContentFromElement(taxPayerIdentifierElement,"TaxpayerIdentifierValue"));
+        taxpayerIdentifiers.setTAXPAYER_IDENTIFIER(taxpayerIdentifier);
+        return taxpayerIdentifiers;
 
     }
     private ROLES getRoles(Element rolesElement){
@@ -218,6 +227,7 @@ public class XmlProcessingService {
             {
                 ROLE role = new ROLE();
                 ROLE_DETAIL role_detail = new ROLE_DETAIL();
+                PROPERTY_OWNER propertyOwner = new PROPERTY_OWNER();
                 Element eElement = (Element) node;
                 NodeList roleChildList = eElement.getChildNodes();
                 for(int j=0;j<roleChildList.getLength();j++){
@@ -233,8 +243,12 @@ public class XmlProcessingService {
                         Element roleDetailElement = (Element) roleChildListNode;
                         role_detail = getRoleDetail(roleDetailElement);
                         role.setROLE_DETAIL(role_detail);
+                    }
 
-
+                    if (roleChildListNode.getNodeType() == Node.ELEMENT_NODE && roleChildListNode.getNodeName().equals("PROPERTY_OWNER")) {
+                        Element propertyOwnerElement = (Element) roleChildListNode;
+                        propertyOwner = getPropertyOwner(propertyOwnerElement);
+                        role.setPROPERTY_OWNER(propertyOwner);
                     }
 
                 }
@@ -244,6 +258,13 @@ public class XmlProcessingService {
 
         }
         return roles;
+    }
+    private PROPERTY_OWNER getPropertyOwner(Element propertyOwnerElement){
+        PROPERTY_OWNER propertyOwner = new PROPERTY_OWNER();
+        propertyOwner.setPropertyOwnerStatusType(getTextContentFromElement(propertyOwnerElement,"PropertyOwnerStatusType"));
+        propertyOwner.setRelationshipVestingType(getTextContentFromElement(propertyOwnerElement,"RelationshipVestingType"));
+        return propertyOwner;
+
     }
       private ROLE_DETAIL getRoleDetail(Element roleDetailElement){
         ROLE_DETAIL role_detail = new ROLE_DETAIL();
@@ -586,28 +607,31 @@ public class XmlProcessingService {
     }
     private TERMS_OF_LOAN getTermsOfLoan(Element termsOfLoanElement){
         TERMS_OF_LOAN terms_of_loan = new TERMS_OF_LOAN();
-        terms_of_loan.setBaseLoanAmount(returnDoubleZeroIfBlank(termsOfLoanElement.getElementsByTagName("BaseLoanAmount").item(0).getTextContent()));
-        terms_of_loan.setLienPriorityType(termsOfLoanElement.getElementsByTagName("LienPriorityType").item(0).getTextContent());
-        terms_of_loan.setLoanPurposeType(termsOfLoanElement.getElementsByTagName("LoanPurposeType").item(0).getTextContent());
-        terms_of_loan.setMortgageType(termsOfLoanElement.getElementsByTagName("MortgageType").item(0).getTextContent());
-        terms_of_loan.setNoteAmount(returnDoubleZeroIfBlank(termsOfLoanElement.getElementsByTagName("NoteAmount").item(0).getTextContent()));
-        terms_of_loan.setNoteRatePercent(returnDoubleZeroIfBlank(termsOfLoanElement.getElementsByTagName("NoteRatePercent").item(0).getTextContent()));
+        terms_of_loan.setBaseLoanAmount(returnDoubleZeroIfBlank(getTextContentFromElement(termsOfLoanElement,"BaseLoanAmount")));
+        terms_of_loan.setLienPriorityType(getTextContentFromElement(termsOfLoanElement,"LienPriorityType"));
+        terms_of_loan.setLoanPurposeType(getTextContentFromElement(termsOfLoanElement,"LoanPurposeType"));
+        terms_of_loan.setMortgageType(getTextContentFromElement(termsOfLoanElement,"MortgageType"));
+        terms_of_loan.setNoteAmount(returnDoubleZeroIfBlank(getTextContentFromElement(termsOfLoanElement,"NoteAmount")));
+        terms_of_loan.setNoteRatePercent(returnDoubleZeroIfBlank(getTextContentFromElement(termsOfLoanElement,"NoteRatePercent")));
+
         return terms_of_loan;
 
     }
 
+
     private LOAN_DETAIL getLoanDetail(Element loanDeatailElement){
         LOAN_DETAIL loan_detail = new LOAN_DETAIL();
-        loan_detail.setConstructionLoanIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("BalloonIndicator").item(0).getTextContent()));
-        loan_detail.setBuydownTemporarySubsidyFundingIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("BuydownTemporarySubsidyFundingIndicator").item(0).getTextContent()));
-        loan_detail.setConstructionLoanIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("ConstructionLoanIndicator").item(0).getTextContent()));
-        loan_detail.setConversionOfContractForDeedIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("ConversionOfContractForDeedIndicator").item(0).getTextContent()));
-        loan_detail.setEnergyRelatedImprovementsIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("EnergyRelatedImprovementsIndicator").item(0).getTextContent()));
-        loan_detail.setInterestOnlyIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("InterestOnlyIndicator").item(0).getTextContent()));
-        loan_detail.setNegativeAmortizationIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("NegativeAmortizationIndicator").item(0).getTextContent()));
-        loan_detail.setPrepaymentPenaltyIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("PrepaymentPenaltyIndicator").item(0).getTextContent()));
-        loan_detail.setRenovationLoanIndicator(returnfalseIfBlank(loanDeatailElement.getElementsByTagName("RenovationLoanIndicator").item(0).getTextContent()));
-        loan_detail.setTotalMortgagedPropertiesCount(returnZeroIfBlank(loanDeatailElement.getElementsByTagName("TotalMortgagedPropertiesCount").item(0).getTextContent()));
+        loan_detail.setConstructionLoanIndicator(returnfalseIfBlank(getTextContentFromElement(loanDeatailElement,"BalloonIndicator")));
+        loan_detail.setBuydownTemporarySubsidyFundingIndicator(returnfalseIfBlank(getTextContentFromElement(loanDeatailElement,"BuydownTemporarySubsidyFundingIndicator")));
+        loan_detail.setConstructionLoanIndicator(returnfalseIfBlank(getTextContentFromElement(loanDeatailElement,"ConstructionLoanIndicator")));
+        loan_detail.setConversionOfContractForDeedIndicator(returnfalseIfBlank(getTextContentFromElement(loanDeatailElement,"ConversionOfContractForDeedIndicator")));
+        loan_detail.setEnergyRelatedImprovementsIndicator(returnfalseIfBlank(getTextContentFromElement(loanDeatailElement,"EnergyRelatedImprovementsIndicator")));
+        loan_detail.setInterestOnlyIndicator(returnfalseIfBlank(getTextContentFromElement(loanDeatailElement,"InterestOnlyIndicator")));
+        loan_detail.setNegativeAmortizationIndicator(returnfalseIfBlank(getTextContentFromElement(loanDeatailElement,"NegativeAmortizationIndicator")));
+        loan_detail.setPrepaymentPenaltyIndicator(returnfalseIfBlank(getTextContentFromElement(loanDeatailElement,"PrepaymentPenaltyIndicator")));
+        loan_detail.setRenovationLoanIndicator(returnfalseIfBlank(getTextContentFromElement(loanDeatailElement,"RenovationLoanIndicator")));
+        loan_detail.setTotalMortgagedPropertiesCount(returnZeroIfBlank(getTextContentFromElement(loanDeatailElement,"TotalMortgagedPropertiesCount")));
+
         return loan_detail;
     }
     private HOUSING_EXPENSES getHousingExpenses(Element housingExpensesElement){
@@ -632,9 +656,9 @@ public class XmlProcessingService {
 
     private HOUSING_EXPENSE getHousingExpense(Element housingExpenseElement){
         HOUSING_EXPENSE housing_expense = new HOUSING_EXPENSE();
-        housing_expense.setHousingExpensePaymentAmount(returnDoubleZeroIfBlank(housingExpenseElement.getElementsByTagName("HousingExpensePaymentAmount").item(0).getTextContent()));
-        housing_expense.setHousingExpenseType(housingExpenseElement.getElementsByTagName("HousingExpenseType").item(0).getTextContent());
-        housing_expense.setHousingExpenseTimingType(housingExpenseElement.getElementsByTagName("HousingExpenseTimingType").item(0).getTextContent());
+        housing_expense.setHousingExpensePaymentAmount(returnDoubleZeroIfBlank(getTextContentFromElement(housingExpenseElement,"HousingExpensePaymentAmount")));
+        housing_expense.setHousingExpenseType(getTextContentFromElement(housingExpenseElement,"HousingExpenseType"));
+        housing_expense.setHousingExpenseTimingType(getTextContentFromElement(housingExpenseElement,"HousingExpenseTimingType"));
         return housing_expense;
     }
     private CLOSING_INFORMATION getClosingInformation(Element closingInformationElement){
@@ -677,31 +701,31 @@ public class XmlProcessingService {
     }
     private AMORTIZATION_RULE getAmortizationRule(Element amortizationRuleElement){
         AMORTIZATION_RULE amortization_rule = new AMORTIZATION_RULE();
-        amortization_rule.setAmortizationType(amortizationRuleElement.getElementsByTagName("AmortizationType").item(0).getTextContent());
-        amortization_rule.setLoanAmortizationPeriodCount(returnZeroIfBlank(amortizationRuleElement.getElementsByTagName("LoanAmortizationPeriodCount").item(0).getTextContent()));
-        amortization_rule.setLoanAmortizationPeriodType(amortizationRuleElement.getElementsByTagName("LoanAmortizationPeriodType").item(0).getTextContent());
+        amortization_rule.setAmortizationType(getTextContentFromElement(amortizationRuleElement,"AmortizationType"));
+        amortization_rule.setLoanAmortizationPeriodCount(returnZeroIfBlank(getTextContentFromElement(amortizationRuleElement,"LoanAmortizationPeriodCount")));
+        amortization_rule.setLoanAmortizationPeriodType(getTextContentFromElement(amortizationRuleElement,"LoanAmortizationPeriodType"));
         return amortization_rule;
     }
 
 
     private SALES_CONTRACT_DETAIL getSalesContractDetail(Element salesContacDetailElement) throws XPathExpressionException {
         SALES_CONTRACT_DETAIL sales_contract_detail = new SALES_CONTRACT_DETAIL();
-        sales_contract_detail.setSalesContractAmount(returnDoubleZeroIfBlank(salesContacDetailElement.getElementsByTagName("SalesContractAmount").item(0).getTextContent()));
+        sales_contract_detail.setSalesContractAmount(returnDoubleZeroIfBlank(getTextContentFromElement(salesContacDetailElement,"SalesContractAmount")));
         return sales_contract_detail;
     }
 
     private PROPERTY_DETAIL getPropertyDetail(Element  propertyDetailElement) throws XPathExpressionException {
         PROPERTY_DETAIL property_detail = new PROPERTY_DETAIL();
-        property_detail.setCommunityPropertyStateIndicator(returnfalseIfBlank(propertyDetailElement.getElementsByTagName("CommunityPropertyStateIndicator").item(0).getTextContent()));
-        property_detail.setAttachmentType(propertyDetailElement.getElementsByTagName("AttachmentType").item(0).getTextContent());
-        property_detail.setFinancedUnitCount(returnZeroIfBlank(propertyDetailElement.getElementsByTagName("FinancedUnitCount").item(0).getTextContent()));
-        property_detail.setPropertyEstateType(propertyDetailElement.getElementsByTagName("PropertyEstateType").item(0).getTextContent());
-        property_detail.setPropertyEstimatedValueAmount(returnDoubleZeroIfBlank(propertyDetailElement.getElementsByTagName("PropertyEstimatedValueAmount").item(0).getTextContent()));
-        property_detail.setPropertyExistingCleanEnergyLienIndicator(returnfalseIfBlank(propertyDetailElement.getElementsByTagName("PropertyExistingCleanEnergyLienIndicator").item(0).getTextContent()));
-        property_detail.setPropertyInProjectIndicator(returnfalseIfBlank(propertyDetailElement.getElementsByTagName("PropertyInProjectIndicator").item(0).getTextContent()));
-        property_detail.setPropertyMixedUsageIndicator(returnfalseIfBlank(propertyDetailElement.getElementsByTagName("PropertyMixedUsageIndicator").item(0).getTextContent()));
-        property_detail.setPropertyUsageType(propertyDetailElement.getElementsByTagName("PropertyUsageType").item(0).getTextContent());
-        property_detail.setPUDIndicator(returnfalseIfBlank(propertyDetailElement.getElementsByTagName("PUDIndicator").item(0).getTextContent()));
+        property_detail.setCommunityPropertyStateIndicator(returnfalseIfBlank(getTextContentFromElement(propertyDetailElement,"CommunityPropertyStateIndicator")));
+        property_detail.setAttachmentType(getTextContentFromElement(propertyDetailElement,"AttachmentType"));
+        property_detail.setFinancedUnitCount(returnZeroIfBlank(getTextContentFromElement(propertyDetailElement,"FinancedUnitCount")));
+        property_detail.setPropertyEstateType(getTextContentFromElement(propertyDetailElement,"PropertyEstateType"));
+        property_detail.setPropertyEstimatedValueAmount(returnDoubleZeroIfBlank(getTextContentFromElement(propertyDetailElement,"PropertyEstimatedValueAmount")));
+        property_detail.setPropertyExistingCleanEnergyLienIndicator(returnfalseIfBlank(getTextContentFromElement(propertyDetailElement,"PropertyExistingCleanEnergyLienIndicator")));
+        property_detail.setPropertyInProjectIndicator(returnfalseIfBlank(getTextContentFromElement(propertyDetailElement,"PropertyInProjectIndicator")));
+        property_detail.setPropertyMixedUsageIndicator(returnfalseIfBlank(getTextContentFromElement(propertyDetailElement,"PropertyMixedUsageIndicator")));
+        property_detail.setPropertyUsageType(getTextContentFromElement(propertyDetailElement,"PropertyUsageType"));
+        property_detail.setPUDIndicator(returnfalseIfBlank(getTextContentFromElement(propertyDetailElement,"PUDIndicator")));
         return property_detail;
     }
     private LIABILITIES getLiabilities(Node dealNode) throws XPathExpressionException {
@@ -734,8 +758,8 @@ public class XmlProcessingService {
     }
     private LIABILITY_SUMMARY getLiabilitySummary(Element liabilitySummaryElement){
         LIABILITY_SUMMARY liability_summary = new LIABILITY_SUMMARY();
-        liability_summary.setTotalSubjectPropertyPayoffsAndPaymentsAmount(returnDoubleZeroIfBlank(liabilitySummaryElement.getElementsByTagName("TotalSubjectPropertyPayoffsAndPaymentsAmount").item(0).getTextContent()));
-        liability_summary.setTotalNonSubjectPropertyDebtsToBePaidOffAmount(returnDoubleZeroIfBlank(liabilitySummaryElement.getElementsByTagName("TotalNonSubjectPropertyDebtsToBePaidOffAmount").item(0).getTextContent()));
+        liability_summary.setTotalSubjectPropertyPayoffsAndPaymentsAmount(returnDoubleZeroIfBlank(getTextContentFromElement(liabilitySummaryElement,"TotalSubjectPropertyPayoffsAndPaymentsAmount")));
+        liability_summary.setTotalNonSubjectPropertyDebtsToBePaidOffAmount(returnDoubleZeroIfBlank(getTextContentFromElement(liabilitySummaryElement,"TotalNonSubjectPropertyDebtsToBePaidOffAmount")));
         return liability_summary;
     }
     private LIABILITY getLiability(Element liabilityElement){
@@ -756,12 +780,12 @@ public class XmlProcessingService {
             if (node.getNodeType() == Node.ELEMENT_NODE )
             {
                 Element eElement = (Element) node;
-                liability_detail.setLiabilityType(eElement.getElementsByTagName("LiabilityAccountIdentifier").item(0).getTextContent());
-                liability_detail.setLiabilityExclusionIndicator(returnfalseIfBlank(eElement.getElementsByTagName("LiabilityExclusionIndicator").item(0).getTextContent()));
-                liability_detail.setLiabilityMonthlyPaymentAmount(returnDoubleZeroIfBlank(eElement.getElementsByTagName("LiabilityMonthlyPaymentAmount").item(0).getTextContent()));
-                liability_detail.setLiabilityPayoffStatusIndicator(returnfalseIfBlank(eElement.getElementsByTagName("LiabilityPayoffStatusIndicator").item(0).getTextContent()));
-                liability_detail.setLiabilityType(eElement.getElementsByTagName("LiabilityType").item(0).getTextContent());
-                liability_detail.setLiabilityUnpaidBalanceAmount(returnDoubleZeroIfBlank(eElement.getElementsByTagName("LiabilityUnpaidBalanceAmount").item(0).getTextContent()));
+                liability_detail.setLiabilityType(getTextContentFromElement(eElement,"LiabilityAccountIdentifier"));
+                liability_detail.setLiabilityExclusionIndicator(returnfalseIfBlank(getTextContentFromElement(eElement,"LiabilityExclusionIndicator")));
+                liability_detail.setLiabilityMonthlyPaymentAmount(returnDoubleZeroIfBlank(getTextContentFromElement(eElement,"LiabilityMonthlyPaymentAmount")));
+                liability_detail.setLiabilityPayoffStatusIndicator(returnfalseIfBlank(getTextContentFromElement(eElement,"LiabilityPayoffStatusIndicator")));
+                liability_detail.setLiabilityType(getTextContentFromElement(eElement,"LiabilityType"));
+                liability_detail.setLiabilityUnpaidBalanceAmount(returnDoubleZeroIfBlank(getTextContentFromElement(eElement,"LiabilityUnpaidBalanceAmount")));
             }
         }
         return liability_detail;
@@ -844,8 +868,8 @@ public class XmlProcessingService {
 
    private FIPS_INFORMATION getFipsInformation(Element fipsInformationElement)throws XPathExpressionException{
         FIPS_INFORMATION fips_information = new FIPS_INFORMATION();
-        fips_information.setFIPSCountyCode(returnZeroIfBlank(fipsInformationElement.getElementsByTagName("FIPSCountyCode").item(0).getTextContent()));
-        fips_information.setFIPSStateNumericCode(returnZeroIfBlank(fipsInformationElement.getElementsByTagName("FIPSStateNumericCode").item(0).getTextContent()));
+        fips_information.setFIPSCountyCode(returnZeroIfBlank(getTextContentFromElement(fipsInformationElement,"FIPSCountyCode")));
+        fips_information.setFIPSStateNumericCode(returnZeroIfBlank(getTextContentFromElement(fipsInformationElement,"FIPSStateNumericCode")));
         return fips_information;
     }
 

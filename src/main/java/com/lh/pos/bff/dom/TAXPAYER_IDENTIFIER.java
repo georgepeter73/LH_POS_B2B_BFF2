@@ -1,6 +1,9 @@
 package com.lh.pos.bff.dom;
 
+import lombok.Data;
+
+@Data
 public class TAXPAYER_IDENTIFIER {
 	public String TaxpayerIdentifierType;
-	public int TaxpayerIdentifierValue;
+	public String TaxpayerIdentifierValue;
 }
