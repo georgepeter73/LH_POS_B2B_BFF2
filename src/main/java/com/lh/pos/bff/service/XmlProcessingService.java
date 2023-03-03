@@ -20,6 +20,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,27 @@ public class XmlProcessingService {
         {
             e.printStackTrace();
         }
+    }
+    public MESSAGE readFile(File file){
+        MESSAGE message = null;
+        try
+        {
+            Document document = get34Document(file);
+            message = getMessage(document);
+            save(message);
+
+        }
+        catch (Exception  e)
+        {
+            e.printStackTrace();
+        }
+        return message;
+    }
+    private Document get34Document(File file) throws ParserConfigurationException, IOException, SAXException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(file);
+        return document;
     }
     private Document get34Document() throws ParserConfigurationException, IOException, SAXException {
         Resource resource = new ClassPathResource("sample.xml");
