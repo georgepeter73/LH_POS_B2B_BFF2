@@ -1,9 +1,11 @@
 package com.lh.pos.bff.dom;
 
-import java.util.Date;
+import lombok.Data;
 
+import java.util.Date;
+@Data
 public class BORROWER_DETAIL {
-	public Date BorrowerBirthDate;
+	public String BorrowerBirthDate;
 	public boolean CommunityPropertyStateResidentIndicator;
 	public int DependentCount;
 	public boolean DomesticRelationshipIndicator;

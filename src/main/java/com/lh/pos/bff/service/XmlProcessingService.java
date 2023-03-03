@@ -181,7 +181,6 @@ public class XmlProcessingService {
     }
     private ROLES getRoles(Element rolesElement){
         ROLES roles = new ROLES();
-        List<ROLE> roleList = new ArrayList<>();
         NodeList nodeList = rolesElement.getChildNodes();
         for(int i=0;i<nodeList.getLength();i++) {
             Node node = nodeList.item(i);
@@ -196,10 +195,7 @@ public class XmlProcessingService {
                         Element borrowerElement = (Element) roleChildListNode;
                         BORROWER borrower = getBorrower(borrowerElement);
                         role.setBORROWER(borrower);
-                        roleList.add(role);
-                        roles.setROLE(roleList);
-
-
+                        roles.setROLE(role);
                     }
                     if (roleChildListNode.getNodeType() == Node.ELEMENT_NODE && roleChildListNode.getNodeName().equals("ROLE_DETAIL")) {
                         Element roleDetailElement = (Element) roleChildListNode;
@@ -217,13 +213,15 @@ public class XmlProcessingService {
 
     private BORROWER getBorrower(Element borrowerElement){
        BORROWER borrower = new BORROWER();
+       DECLARATION declaration = new DECLARATION();
+       BORROWER_DETAIL borrower_detail = new BORROWER_DETAIL();
        NodeList borrowerNodeList =  borrowerElement.getChildNodes();
        for(int i=0;i<borrowerNodeList.getLength();i++){
            Node borrowerListNode = borrowerNodeList.item(i);
            if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("BORROWER_DETAIL"))
            {
                Element eElement = (Element) borrowerListNode;
-               System.out.println(eElement.getNodeName());
+               borrower_detail = getBorrowerDetail(eElement);
            }
            if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("CURRENT_INCOME"))
            {
@@ -232,6 +230,7 @@ public class XmlProcessingService {
            if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("DECLARATION"))
            {
                Element eElement = (Element) borrowerListNode;
+               declaration = getDeclaration(eElement);
            }
            if (borrowerListNode.getNodeType() == Node.ELEMENT_NODE && borrowerListNode.getNodeName().equals("DEPENDENTS"))
            {
@@ -251,9 +250,46 @@ public class XmlProcessingService {
            }
 
        }
+        borrower.setDECLARATION(declaration);
+       borrower.setBORROWER_DETAIL(borrower_detail);
 
        return borrower;
     }
+    private DECLARATION getDeclaration(Element declarationElement){
+        DECLARATION declaration = new DECLARATION();
+        DECLARATION_DETAIL declaration_detail = new DECLARATION_DETAIL();
+        if(declarationElement.getElementsByTagName("DECLARATION_DETAIL").getLength()>0){
+            Element declarionDetailElement = (Element)declarationElement.getElementsByTagName("DECLARATION_DETAIL").item(0);
+            declaration_detail.setBankruptcyIndicator(returnfalseIfBlank(getTextContentFromElement(declarionDetailElement,"BankruptcyIndicator")));
+            declaration_detail.setCitizenshipResidencyType(getTextContentFromElement(declarionDetailElement,"CitizenshipResidencyType"));
+            declaration_detail.setHomeownerPastThreeYearsType(getTextContentFromElement(declarionDetailElement,"HomeownerPastThreeYearsType"));
+            declaration_detail.setIntentToOccupyType(getTextContentFromElement(declarionDetailElement,"IntentToOccupyType"));
+            declaration_detail.setOutstandingJudgmentsIndicator(returnfalseIfBlank(getTextContentFromElement(declarionDetailElement,"OutstandingJudgmentsIndicator")));
+            declaration_detail.setPartyToLawsuitIndicator(returnfalseIfBlank(getTextContentFromElement(declarionDetailElement,"PartyToLawsuitIndicator")));
+            declaration_detail.setPresentlyDelinquentIndicator(returnfalseIfBlank(getTextContentFromElement(declarionDetailElement,"PresentlyDelinquentIndicator")));
+            declaration_detail.setPriorPropertyDeedInLieuConveyedIndicator(returnfalseIfBlank(getTextContentFromElement(declarionDetailElement,"PriorPropertyDeedInLieuConveyedIndicator")));
+            declaration_detail.setPriorPropertyForeclosureCompletedIndicator(returnfalseIfBlank(getTextContentFromElement(declarionDetailElement,"PriorPropertyForeclosureCompletedIndicator")));
+            declaration_detail.setPriorPropertyShortSaleCompletedIndicator(returnfalseIfBlank(getTextContentFromElement(declarionDetailElement,"PriorPropertyShortSaleCompletedIndicator")));
+            declaration_detail.setPropertyProposedCleanEnergyLienIndicator(returnfalseIfBlank(getTextContentFromElement(declarionDetailElement,"PropertyProposedCleanEnergyLienIndicator")));
+            declaration_detail.setUndisclosedBorrowedFundsIndicator(returnfalseIfBlank(getTextContentFromElement(declarionDetailElement,"UndisclosedBorrowedFundsIndicator")));
+            declaration_detail.setUndisclosedComakerOfNoteIndicator(returnfalseIfBlank(getTextContentFromElement(declarionDetailElement,"UndisclosedComakerOfNoteIndicator")));
+            declaration_detail.setUndisclosedCreditApplicationIndicator(returnfalseIfBlank(getTextContentFromElement(declarionDetailElement,"UndisclosedCreditApplicationIndicator")));
+            declaration_detail.setUndisclosedMortgageApplicationIndicator(returnfalseIfBlank(getTextContentFromElement(declarionDetailElement,"UndisclosedMortgageApplicationIndicator")));
+        }
+        declaration.setDECLARATION_DETAIL(declaration_detail);
+        return declaration;
+    }
+    private BORROWER_DETAIL getBorrowerDetail(Element borrowerDetailElement){
+        BORROWER_DETAIL borrower_detail = new BORROWER_DETAIL();
+        borrower_detail.setBorrowerBirthDate(getTextContentFromElement(borrowerDetailElement,"BorrowerBirthDate"));
+        borrower_detail.setCommunityPropertyStateResidentIndicator(returnfalseIfBlank(getTextContentFromElement(borrowerDetailElement,"CommunityPropertyStateResidentIndicator")));
+        borrower_detail.setDependentCount(returnZeroIfBlank(getTextContentFromElement(borrowerDetailElement,"DependentCount")));
+        borrower_detail.setDomesticRelationshipIndicator(returnfalseIfBlank(getTextContentFromElement(borrowerDetailElement,"DomesticRelationshipIndicator")));
+        borrower_detail.setMaritalStatusType(getTextContentFromElement(borrowerDetailElement,"MaritalStatusType"));
+        return borrower_detail;
+    }
+
+
 
 
     private INDIVIDUAL getIndividual(Element individualElement){
@@ -616,6 +652,13 @@ public class XmlProcessingService {
      * @param s
      * @return
      */
+    private String getTextContentFromElement(Element element, String elementName){
+        String retValue = "";
+        if(element.getElementsByTagName(elementName).getLength()>0){
+            retValue = element.getElementsByTagName(elementName).item(0).getTextContent();
+        }
+        return retValue;
+    }
 
     private int returnZeroIfBlank(String s){
         if(s!=null && s.isBlank()){

@@ -1,5 +1,8 @@
 package com.lh.pos.bff.dom;
 
+import lombok.Data;
+
+@Data
 public class DECLARATION_DETAIL {
 	public boolean BankruptcyIndicator;
 	public String CitizenshipResidencyType;
