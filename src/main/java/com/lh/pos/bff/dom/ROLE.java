@@ -11,4 +11,5 @@ public class ROLE {
 	public String text;
 	public PROPERTY_OWNER PROPERTY_OWNER;
 	public LICENSES LICENSES;
+
 }
