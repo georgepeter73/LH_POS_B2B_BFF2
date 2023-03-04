@@ -81,7 +81,7 @@ public class XmlProcessingService {
                                     ;
                                     for (ROLE role : roleList) {
                                         if (role.getLabel().equalsIgnoreCase(to)) {
-                                            role.getBORROWER().getLiabilityList().add(liability);
+                                            role.getBORROWER().getLIABILITIES().add(liability);
                                         }
 
                                     }
@@ -92,8 +92,19 @@ public class XmlProcessingService {
                         }
                     }
                 }
+                //reset liabilities and relationships to avoid any duplicate data
+                deal.getLIABILITIES().setLIABILITY(null);
+                deal.setRELATIONSHIPS(null);
             }
         }
+      }
+      private ABOUT_VERSIONS getAboutVersions(Element aboutVersionsElement){
+          ABOUT_VERSIONS aboutVersions1 = new ABOUT_VERSIONS();
+          ABOUT_VERSION aboutVersion = new ABOUT_VERSION();
+          aboutVersion.setCreatedDatetime(getTextContentFromElement(aboutVersionsElement,"CreatedDatetime"));
+          aboutVersions1.setABOUT_VERSION(aboutVersion);
+          return aboutVersions1;
+
       }
 
     private Document get34Document(File file) throws ParserConfigurationException, IOException, SAXException {
@@ -123,6 +134,15 @@ public class XmlProcessingService {
         Node dealNode = getDeal(document);
         PARTIES parties = null;
         LOANS loans = null;
+        Element messageElement = (Element) getMessageNode(document);
+        message.setDU(messageElement.getAttribute("xmlns:DU"));
+        message.setULAD(messageElement.getAttribute("xmlns:ULAD"));
+        message.setXlink(messageElement.getAttribute("xmlns:xlink"));
+        message.setMISMOReferenceModelIdentifier(messageElement.getAttribute("MISMOReferenceModelIdentifier"));
+        message.setXsi(messageElement.getAttribute("xmlns:xsi"));
+        message.setXmlns(messageElement.getAttribute("xmlns"));
+        message.setABOUT_VERSIONS(getAboutVersions(messageElement));
+
         if(dealNode!=null) {
             subjectProperty = getSubjectProperty(dealNode);
             liabilities = getLiabilities(dealNode);
@@ -142,9 +162,9 @@ public class XmlProcessingService {
         deal.setLOANS(loans);
         deal.setPARTIES(parties);
         deal.setRELATIONSHIPS(relationships);
-
-        return message;
+         return message;
     }
+
     private RELATIONSHIPS getRelationships(Node dealNode){
         RELATIONSHIPS relationships = new RELATIONSHIPS();
         List<RELATIONSHIP> relationshipList = new ArrayList<>();
@@ -178,6 +198,15 @@ public class XmlProcessingService {
         loanApplicationRepository.save(loanApplication);
         return true;
 
+    }
+    private Node getMessageNode(Document document) throws XPathExpressionException {
+        XPath xPath = XPathFactory.newInstance().newXPath();
+        String expression = "./MESSAGE";
+        NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(document, XPathConstants.NODESET);
+        if(nodeList.getLength()>0){
+            return nodeList.item(0);
+        }
+        return null;
     }
 
     private Node getDeal(Document document)throws XPathExpressionException{
@@ -789,6 +818,7 @@ public class XmlProcessingService {
         propertyDetail.setPUDIndicator(returnfalseIfBlank(getTextContentFromElement(propertyDetailElement,"PUDIndicator")));
         return propertyDetail;
     }
+
     private LIABILITIES getLiabilities(Node dealNode) throws XPathExpressionException {
         LIABILITIES liabilities = new LIABILITIES();
         LIABILITY_SUMMARY liabilitySummary = new LIABILITY_SUMMARY();

@@ -14,5 +14,5 @@ public class BORROWER {
 	public EMPLOYERS EMPLOYERS;
 	public GOVERNMENT_MONITORING GOVERNMENT_MONITORING;
 	public RESIDENCES RESIDENCES;
-	public List<LIABILITY> liabilityList = new ArrayList<>();
+	public List<LIABILITY> LIABILITIES = new ArrayList<>();
 }

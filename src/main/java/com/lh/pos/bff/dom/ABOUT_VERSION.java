@@ -1,7 +1,9 @@
 package com.lh.pos.bff.dom;
 
-import java.util.Date;
+import lombok.Data;
 
+import java.util.Date;
+@Data
 public class ABOUT_VERSION {
-	public Date CreatedDatetime;
+	public String CreatedDatetime;
 }
