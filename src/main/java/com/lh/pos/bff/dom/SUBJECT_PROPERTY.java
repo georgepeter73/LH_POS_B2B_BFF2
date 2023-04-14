@@ -1,5 +1,8 @@
 package com.lh.pos.bff.dom;
 
+import lombok.Data;
+
+@Data
 public class SUBJECT_PROPERTY {
 	public ADDRESS ADDRESS;
 	public LOCATION_IDENTIFIER LOCATION_IDENTIFIER;

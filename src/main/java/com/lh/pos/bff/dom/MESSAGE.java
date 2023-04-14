@@ -1,5 +1,8 @@
 package com.lh.pos.bff.dom;
 
+import lombok.Data;
+
+@Data
 public class MESSAGE {
 	public ABOUT_VERSIONS ABOUT_VERSIONS;
 	public DEAL_SETS DEAL_SETS;

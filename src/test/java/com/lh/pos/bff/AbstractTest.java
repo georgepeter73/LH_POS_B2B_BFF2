@@ -27,9 +27,6 @@ public abstract class AbstractTest {
   private WebApplicationContext webApplicationContext;
   @Autowired
   private ObjectMapper objectMapper;
-  public String mersorgId = "1014760";
-  public String mersloanId ="3021060131";
-
   protected void setUp() {
     JacksonTester.initFields(this, objectMapper);
     mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();

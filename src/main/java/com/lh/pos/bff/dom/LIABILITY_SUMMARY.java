@@ -1,6 +1,9 @@
 package com.lh.pos.bff.dom;
 
+import lombok.Data;
+
+@Data
 public class LIABILITY_SUMMARY {
-	public int TotalNonSubjectPropertyDebtsToBePaidOffAmount;
-	public int TotalSubjectPropertyPayoffsAndPaymentsAmount;
+	public double TotalNonSubjectPropertyDebtsToBePaidOffAmount;
+	public double TotalSubjectPropertyPayoffsAndPaymentsAmount;
 }
